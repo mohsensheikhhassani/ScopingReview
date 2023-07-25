@@ -8,6 +8,9 @@ Two spreadsheets were created based on the data extracted from the databases, on
 Record_Demographics_dir = "D:\\M.Sheikh\\Book2.xlsx"
 Record_Data_Extraction = "D:\\M.Sheikh\\Book1.xlsx"
 
+The excel sheets can be accessed here upon approval:
+https://drive.google.com/drive/folders/1Ml0DGQw_GQ5zIBXR5rffeNi9qkp2_UW1?usp=sharing
+
 Script 1 can be run to identify topics mentioned in each paper, and then categorize them based on the corresponding faculty. For each paper, this categorization will take place and result in a number of files based on host faculty and topics mentioned, will include the quote of the text mentiond in the paper, and also a series of additional information such as article number, journal name, etc are extracted from the excel sheets and added into arrays.
 
 Script2 converts the resulting file into readible and easy to review word files with improved formatting.
