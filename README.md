@@ -17,3 +17,9 @@ Script2 converts the resulting files into a more readable Word files with improv
 Script 3 groups extracted text relating to solutions to legal problems. It results in separate documents listing all solutions belonging in each category (e.g., reforms of existing laws, litigation, international treaty, etc.,) along with a single folder including all these ‘solutions’ files. Solution quotes are provided alongside bibliographical information such as article title and journal name. 
 
 We then create one plot for each of the topics mentioned, with the first bar of the plot showing the overall number of times the topic has been mentioned, and the rest of the bars showing how many times the topic has been mentioned broken down by discipline. These plots are not the plots used in the review itself, rather created to give a better understanding of our data to the authors of the review.
+
+Data from Book1 and Book2 was also transformed on R to create additional plots used in this paper (Law-AI-and-Medicine-Plots-and-Analysis).
+
+
+
+
