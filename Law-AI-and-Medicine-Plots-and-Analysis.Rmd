@@ -1,0 +1,1119 @@
+---
+title: "Law Ai Medicine"
+output: html_notebook
+---
+
+```{r}
+library(hrbrthemes)
+library(viridis)
+library(plyr)
+library(ggplot2)
+library(grid)
+library(knitr)
+library(RColorBrewer)
+library(tidyverse)
+library(countrycode)
+```
+
+```{r, echo= FALSE }
+#read new data
+dt = read.csv("Book1.csv",skip = 1)
+dt2 = read.csv("Book2.csv",skip = 1)
+
+#merge together on item number
+data = merge(dt,dt2,by = "Item.Number")
+```
+
+## Bubble plots and plots broken down by year
+
+```{r , echo= FALSE }
+# Transform data to count Field of medicine and legal issue Mentioned by year
+yr = c(1)
+field = c(1)
+Men = c(1)
+new_df = data.frame(yr,field,Men)
+
+for(i in 1:nrow(data)) {
+    row <- data[i,]
+    # create row if an article mentions Privacy
+    if(row$Privacy.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Privacy"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+      # datalist[[i]] = c(yr,fld,Mention)
+    }
+    
+    # create row if an article mentions Cyber Security
+    if(row$Cybersecurity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Cyber Security"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions Safety/Quality
+    if(row$Safety.Quality.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Safety/Quality"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions Bias
+    if(row$Bias.Discrimination.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Bias/Discrimination"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions Liability
+    if(row$Liability.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Liability"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions Informed Consent
+    if(row$Informed.Consent.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Informed Consent"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions Capacity
+    if(row$Capacity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Capacity"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions IP
+    if(row$Intellectual.Property.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Intellectual Property"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions EOR
+    if(row$Efficiency.of.Regulation.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Efficiency of Regulation"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions AI and legal
+    if(row$AI.Personhood.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "AI and Legal Personhood"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+    # create row if an article mentions Access/Insurance
+    if(row$Access.Insurance.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Access/Insurance"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+
+
+    # create row if an article mentions other legal
+    if(row$Other.Legal.Issue.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      fld = row$Field.of.Medicine.1
+      Mention  = "Other Legal Issues"
+      new_df <- rbind(new_df,c(yr,fld, Mention))
+    }
+    
+}
+
+```
+
+
+```{r  , echo= FALSE}
+#remove na's from data
+new_df = new_df[-1,]
+new_df= na.omit(new_df)
+
+#count Frequencies
+tot_df = plyr::count(new_df, c("yr", "field","Men"))
+
+```
+
+## Bubble plots and plots broken down by year
+
+```{r , echo= FALSE }
+# plt Legal issues mentioned by year (2021 values not prorated)
+tot_df2 = plyr::count(new_df, c("yr", "Men")) 
+tot = plyr::count(new_df, "yr")
+
+
+x = ggplot(tot_df2, aes(x=yr, y=Men, size=freq, fill=freq)) +
+    geom_point(alpha=0.7, shape=21,color= "white") +
+    scale_size(range = c(.5, 16), name="freq") +
+    scale_fill_viridis(discrete=FALSE, guide=FALSE, option="mako") +
+    theme_classic() +
+    theme(legend.position="bottom") +
+    ylab("Legal Issue Mentioned") +
+    xlab("Year") +
+    ggtitle("Legal Issues Mentioned by Year") +
+    theme(legend.position = "none") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+print(x)
+
+
+```
+
+### Legal issue by year 2021 prorated assuming equal dist of papers published
+
+
+```{r, echo= FALSE}
+#prorate the 2021 values for after June
+tot_dfpro = tot_df2
+tot_dfpro$freq = ifelse(tot_df2$yr == 2021,
+                       tot_df2$freq*2,
+                       tot_df2$freq
+                       )
+
+#plot Prorated Bubble plot
+x = ggplot(tot_dfpro, aes(x=yr, y=Men, size=freq, fill=freq)) +
+    geom_point(alpha=0.7, shape=21,color= "white") +
+    scale_size(range = c(.5, 15), name="freq") +
+    scale_fill_viridis(discrete=FALSE, guide=FALSE, option="mako") +
+    theme_classic() +
+    theme(legend.position="bottom") +
+    ylab("Legal Issue Discussed") +
+    xlab("Year") +
+    ggtitle("Frequency of Discussion of Legal Issues - by Year") +
+    labs(caption= "*2021 values prorated")+
+    theme(plot.caption = element_text(size = 6, hjust = 0))+
+    theme(legend.position = "none") +
+    theme(plot.title = element_text(hjust = 0))+
+    theme(plot.title = element_text(size = 15,face = "bold"))
+
+print(x)
+```
+
+
+```{r, echo= FALSE}
+#plot prorated bar graph
+q=ggplot(tot_dfpro, aes(fill=Men, y=freq, x=yr)) +
+  scale_y_continuous(expand = expansion(mult = c(0, .1)))+
+     geom_bar(position="stack", stat="identity")+
+     theme(legend.position = "right") + 
+     theme(plot.caption = element_text(size = 6, hjust = 0))+
+     labs(x = "Year", y = "Frequency",fill = "Legal Issue Discussed", title = "Frequency of Discussion of Legal Issues - by Year",
+          caption= "*2021 values prorated")
+  
+print(q)
+
+
+```
+
+## Line graph
+
+### Projected assuming even dist of papers per year
+
+```{r}
+#Set Seed
+set.seed(13)
+
+#Split data into before and after prorated year
+tot_dfcut = subset(tot_df2, yr!= 2021)
+tot_dfprorate = tot_df2
+tot_dfprorate$freq = ifelse(tot_df2$yr == 2021,
+                       tot_df2$freq*2,
+                       tot_df2$freq)
+
+# create a vector of colors for line graph
+col_vector = c("#b3de69", "#cab2d6","#546450", "#d1bb66", "#fc8d62", "purple", "brown", "pink", "#92d2f3", "#386cb0", "gold", "black")
+# dummy labels as placeholder for first part of line graph
+labs1 = c(c("label1", "label2", "label3", "label4","label5", "label6", "label7", "label8","label9", "label10", "label11", "label12"))
+
+#Plot line Graph
+plot = ggplot() + 
+       #plot of current values
+  geom_line(data = tot_dfcut,aes(x = yr, y = freq,colour = fct_reorder2(Men, yr, freq), group = Men),size = 1)+
+  geom_point()+
+  labs(x = "Year", y = "Frequency", color = "Legal Issue Discussed") +  
+  labs(caption= "*2021 values prorated")+
+  scale_color_manual(values= sample(col_vector, 12),labels = labs1)+ 
+  theme_minimal() +
+  ggtitle("Legal Issues Mentioned by Year") +
+  theme(plot.title = element_text(hjust = 0.5))    +
+  #add line for Prorated Values
+  geom_line(data = tot_dfprorate,aes(x = yr, y = freq,colour = fct_reorder2(Men, yr, freq), group = Men),size   =    1,lty = 2)+
+  labs(x = "Year", y = "Frequency", color = "Legal Issue Discussed") +  
+  scale_color_manual(values= sample(col_vector, 12) )+ 
+  ggtitle("Frequency of Discussion of Legal Issues - by Year") +
+  theme(plot.title = element_text(hjust = 0))
+
+
+plot
+
+```
+
+
+
+```{r}
+set.seed(13)
+
+#Create second version of plot above
+plot <- ggplot() +
+  geom_line(
+    data = tot_dfcut,
+    aes(x = yr, y = freq, colour = fct_reorder2(Men, yr, freq), group = Men),
+    size = 1
+  ) +
+  geom_point() +
+  labs(x = "Year", y = "Frequency", color = "Legal Issue Discussed") +
+  labs(caption = "*2021 values prorated") +
+  scale_color_manual(values = sample(col_vector, 12), labels = labs1) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.border = element_blank(),  # Remove panel borders
+    axis.line = element_line(colour = "black")  # Set axis lines
+  ) +
+  ggtitle("Legal Issues Mentioned by Year") +
+  geom_line(
+    data = tot_dfprorate,
+    aes(x = yr, y = freq, colour = fct_reorder2(Men, yr, freq), group = Men),
+    size = 1,
+    lty = 2
+  ) +
+  labs(x = "Year", y = "Frequency", color = "Legal Issue Discussed") +
+  scale_color_manual(values = sample(col_vector, 12)) +
+  ggtitle("Frequency of Discussion of Legal Issues - by Year") +
+  theme(plot.title = element_text(hjust = 0))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, NA))+ labs(caption = c("*2021 Values Prorated", 
+  expression(bold("Figure 2")))) + 
+  theme(plot.caption = element_text(hjust=c(1, 0)))
+
+plot
+```
+
+
+### Proated fom per year
+
+```{r , echo= FALSE}
+tot_df4 = plyr::count(new_df, c("yr", "field")) 
+
+pro_df4= tot_df4
+pro_df4$freq = ifelse(tot_df4$yr == 2021,
+                       tot_df4$freq*2,
+                       tot_df4$freq
+                       )
+
+#create plot
+x = ggplot(pro_df4, aes(x=yr, y=field, size=freq, fill=field)) +
+    geom_point(alpha=0.7, shape=21,color= "black") +
+    scale_size(range = c(3, 15), name="field") +
+    scale_fill_viridis(discrete = T, guide=FALSE, option="magma") +
+    theme_classic() +
+    theme(legend.position="bottom") +
+    ylab("Field of Medicine") +
+    xlab("Year") +
+    ggtitle("Field of Medicine by Year") +
+    theme(legend.position = "none") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+print(x)
+```
+
+## Bar Graphs by legal issue by Feild of Medicine
+
+```{r, echo = FALSE}
+#create for loop for plots
+bar_df = plyr::count(new_df, c("Men","field"))
+#group other and unclear
+bar_df$field[bar_df$field == "Unclear (Flag for review"] = "Other"
+bar_df$field[bar_df$field == "Other: To Specify"] = "Other"
+#Create a list of all legal issues mentioned
+mentions =c("Privacy","Cyber Security","Safety/Quality","Bias/Discrimination",
+            "Liability","Informed Consent","Capacity","Intellectual Property","Efficiency of Regulation","AI and Legal Personhood","Access/Insurance","Other Legal Issues")
+
+#for loop plot all Mentions
+for(i in mentions){
+  varis = subset(bar_df, Men == i )
+  x = ggplot(varis, aes(x = freq, y = reorder(field,freq))) +
+  geom_col(fill = "#0099f9") +
+    scale_x_continuous(expand = expansion(mult = c(0, .1)))+
+  labs(
+      title = paste(i,"Mentioned in Papers"),
+      subtitle = "Broken Down by Field of Medicine"
+    )+
+  ylab("") +
+  xlab("Frequency") +
+  theme(
+    plot.title = element_text(size = 15),
+    plot.subtitle = element_text(face = "bold", color = "#0099f9", size = 10)
+  )
+  print(x)
+  }
+```
+
+###DATA BY DISIPLINE OF JOURNAL
+
+```{r , echo= FALSE}
+## create DF 
+yr = c(1)
+disp = c(1)
+Men = c(1)
+bar_df = data.frame(yr,disp,Men)
+
+# Iterate through the original dataframe and appent to new df based on what legal issue is mentioned
+for(i in 1:nrow(data)) {
+    row <- data[i,]
+    # create row if an article mentions Privacy
+    if(row$Privacy.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Privacy"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+    
+    # create row if an article mentions Cyber Security
+    if(row$Cybersecurity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Cyber Security"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Safety/Quality
+    if(row$Safety.Quality.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Safety/Quality"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Bias
+    if(row$Bias.Discrimination.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Bias/Discrimination"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Liability
+    if(row$Liability.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Liability"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Informed Consent
+    if(row$Informed.Consent.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Informed Consent"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Capacity
+    if(row$Capacity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Capacity"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions IP
+    if(row$Intellectual.Property.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Intellectual Property"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions EOR
+    if(row$Efficiency.of.Regulation.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Efficiency of Regulation"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions AI and legal
+    if(row$AI.Personhood.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "AI and Legal Personhood"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Access/Insurance
+    if(row$Access.Insurance.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Access/Insurance"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+
+
+    # create row if an article mentions other legal
+    if(row$Other.Legal.Issue.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Type.of.Journal
+      Mention  = "Other Legal Issues"
+      bar_df <- rbind(bar_df,c(yr,disp, Mention))
+    }
+}
+```
+
+
+## BY country
+
+```{r, echo= FALSE}
+#create new DF
+yr = c(1)
+con = c(1)
+Men = c(1)
+new_df2 = data.frame(yr,con,Men)
+
+# Itterate and append based on legal issue mentioned, include country
+for(i in 1:nrow(data)) {
+    row <- data[i,]
+    # create row if an article mentions Privacy
+    if(row$Privacy.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Privacy"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+      # datalist[[i]] = c(yr,con,Mention)
+    }
+    
+    # create row if an article mentions Cyber Security
+    if(row$Cybersecurity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Cyber Security"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions Safety/Quality
+    if(row$Safety.Quality.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Safety/Quality"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions Bias
+    if(row$Bias.Discrimination.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Bias/Discrimination"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions Liability
+    if(row$Liability.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Liability"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions Informed Consent
+    if(row$Informed.Consent.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Informed Consent"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions Capacity
+    if(row$Capacity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Capacity"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions IP
+    if(row$Intellectual.Property.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Intellectual Property"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions EOR
+    if(row$Efficiency.of.Regulation.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Efficiency of Regulation"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions AI and legal
+    if(row$AI.Personhood.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "AI and Legal Personhood"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+    # create row if an article mentions Access/Insurance
+    if(row$Access.Insurance.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Access/Insurance"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+
+
+    # create row if an article mentions other legal
+    if(row$Other.Legal.Issue.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      con = row$Corresp..Author..Country.
+      Mention  = "Other Legal Issues"
+      new_df2 <- rbind(new_df2,c(yr,con, Mention))
+    }
+    
+}
+
+```
+
+```{r}
+#Heatmap scale adjusted 
+mapdat2 = data.frame(data$Year.of.Publication,data$Corresp..Author..Country.)
+mapdat2 = mapdat2[-1,]
+
+#remove 0 and group unknowns and correrct spelling errors in data
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'China '] = "China"
+mapdat2$data.Corresp..Author..Country.[mapdat2$con == ''] = "Unknown"
+mapdat2$data.Corresp..Author..Country.[mapdat2$con == ' '] = "Unknown"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == '0'] = "Unknown"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'Vietman'] = "Vietnam"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'Australi'] = "Australia"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'Germany '] = "Germany"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'Germnay'] = "Germany"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'France '] = "France"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'United States'] = "USA"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'United Kingdom'] = "UK"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'England'] = "UK"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'Amsterdam'] = "Netherlands"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'The Netherlands'] = "Netherlands"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'Ialy'] = "Italy"
+
+#count by country
+tot_map2 = plyr::count(mapdat2, c("data.Corresp..Author..Country.")) 
+
+#make graph of count
+ggplot(tot_map2, aes(x = freq, y = reorder(data.Corresp..Author..Country.,freq))) +
+  geom_col(fill = "#0099f9") +
+  scale_x_continuous(expand = expansion(mult = c(0, .1)))+
+  labs(
+    title = "Total Papers Published",
+    subtitle = "By Country" )+
+    ylab("Country") +
+    xlab("Frequency") +
+    theme(
+    plot.title = element_text(size = 15),
+    plot.subtitle = element_text(face = "bold", color = "#0099f9", size = 10)
+  )
+
+```
+
+## By Continent
+
+```{r, echo= FALSE}
+#Add continent variable
+mapdat2$conti = countrycode(sourcevar = mapdat2[, "data.Corresp..Author..Country."],
+                            origin = "country.name",
+                            destination = "continent")
+mapdat2$conti[is.na(mapdat2$conti)] = "Unknown"
+
+#Split apart the Americas
+mapdat2[mapdat2$data.Corresp..Author..Country. =="Argentina" | mapdat2$data.Corresp..Author..Country. =="Brazil" , "conti"] <- "South America"
+mapdat2[mapdat2$conti == "Americas" , "conti"] <- "North America"
+#Count Per Continent
+tot_map4 = plyr::count(mapdat2, c("conti"))
+
+#Plot By Continent
+ggplot(tot_map4, aes(x = freq, y = reorder(conti,freq))) +
+  geom_col(fill = "#0099f9") +
+  scale_x_continuous(expand = expansion(mult = c(0, .1)))+
+  labs(
+    title = "Total Papers Published",
+    subtitle = "By Continent")+
+    ylab("Continent") +
+    xlab("Frequency") +
+      theme(
+    plot.title = element_text(size = 15),
+    plot.subtitle = element_text(face = "bold", color = "#0099f9", size = 10))
+
+  
+```
+## Graph USA removed
+
+```{r, echo=FALSE}
+#heatmap updated scales 
+library(maps)
+library(ggplot2)
+library(countrycode)
+
+tot_map2$data.Corresp..Author..Country.[tot_map2$data.Corresp..Author..Country. == 'United States'] = "USA"
+tot_map2$data.Corresp..Author..Country.[tot_map2$data.Corresp..Author..Country. == 'United Kingdom of Great Britain and Northern Ireland'] = "UK"
+
+#remove USA to visualize publication frequency without USA oversaturation
+tot_map2$data.Corresp..Author..Country.[tot_map2$data.Corresp..Author..Country. == 'USA'] = "U"
+
+#
+world_map <- map_data("world")
+world_map <- subset(world_map, region != "Antarctica")
+x <- unique(world_map$region)
+x = as.data.frame(x)
+colnames(x)[1] ="con"
+mapy = x
+mapy$data.Corresp..Author..Country.= x$con
+mapy= merge(x= mapy,y = tot_map2, by = "data.Corresp..Author..Country.", all.x = T)
+
+
+
+#plot Heatmap without USA
+ggplot(mapy) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region, color = "DADADA"),
+           fill = "white", color = "#7f7f7f", size = 0.25) +
+  theme_minimal()+
+  geom_map(map = world_map, aes(map_id = data.Corresp..Author..Country., fill = freq), size = 0.25) +
+  scale_fill_viridis_c(option = "C",name = "Publications", direction = -1,na.value = "#DADADA") +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  labs(title = "Distribution of Papers Published (USA Removed)",
+       subtitle = "Between 2012 -2021")+
+  theme(plot.title = element_text(size = 15, face = "bold"),
+        plot.subtitle = element_text(size = 9),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank())+
+  ylab("") +
+  xlab("")
+
+```
+
+## Graph USA included
+
+```{r, echo=FALSE}
+tot_map2$data.Corresp..Author..Country.[tot_map2$data.Corresp..Author..Country. == 'United States'] = "USA"
+tot_map2$data.Corresp..Author..Country.[tot_map2$data.Corresp..Author..Country. == 'United Kingdom of Great Britain and Northern Ireland'] = "UK"
+#readd USA
+tot_map2$data.Corresp..Author..Country.[tot_map2$data.Corresp..Author..Country. == 'U'] = "USA"
+
+world_map <- map_data("world")
+world_map <- subset(world_map, region != "Antarctica")
+
+x <- unique(world_map$region)
+x = as.data.frame(x)
+colnames(x)[1] ="con"
+mapy = x
+mapy$data.Corresp..Author..Country.= x$con
+mapy= merge(x= mapy,y = tot_map2, by = "data.Corresp..Author..Country.", all.x = T)
+
+
+
+#plot Heatmap With USA included
+ggplot(mapy) +
+  geom_map(dat = world_map, map = world_map, aes(map_id = region, color = "DADADA"),
+           fill = "white", color = "#7f7f7f", size = 0.25) +
+  theme_minimal()+
+  geom_map(map = world_map, aes(map_id = data.Corresp..Author..Country., fill = freq), size = 0.25) +
+  scale_fill_viridis_c(option = "C",name = "Publications", direction = -1,na.value = "#DADADA") +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  labs(title = "Distribution of Papers Published",
+       subtitle = "Between 2012 -2021")+
+  theme(plot.title = element_text(size = 15, face = "bold"),
+        plot.subtitle = element_text(size = 9),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank())+
+  ylab("") +
+  xlab("")
+
+```
+
+```{r , echo= FALSE}
+#new_df2 = new_df2[-1,]
+
+
+#remove 0 and group unknowns
+new_df2$con[new_df2$con == 'China '] = "China"
+new_df2$con[new_df2$con == ''] = "Unknown"
+new_df2$con[new_df2$con == '0'] = "Unknown"
+new_df2$con[new_df2$con == 'Vietman'] = "Vietnam"
+new_df2$con[new_df2$con == 'Australi'] = "Australia"
+new_df2$con[new_df2$con == 'Germany '] = "Germany"
+new_df2$con[new_df2$con == 'Germnay'] = "Germany"
+new_df2$con[new_df2$con == 'France '] = "France"
+new_df2$con[new_df2$con == 'United States'] = "USA"
+new_df2$con[new_df2$con == 'United Kingdom'] = "UK"
+new_df2$con[new_df2$con == 'England'] = "UK"
+new_df2$con[new_df2$con == 'Amsterdam'] = "Netherlands"
+mapdat2$data.Corresp..Author..Country.[mapdat2$data.Corresp..Author..Country. == 'The Netherlands'] = "Netherlands"
+
+map_selected = mapdat2[,c("data.Corresp..Author..Country.","conti")]
+new_df2 = merge(new_df2,map_selected,by.x = "con",by.y = "data.Corresp..Author..Country.")
+
+```
+
+
+## Discipline is Column I
+
+```{r , echo= FALSE}
+#create new data frame to transform data to count disciplines and solutions
+yr = c(1)
+displ = c(1)
+sol = c(1)
+new_df7 = data.frame(yr,displ,sol)
+# iterate though data ad count the sols and disciplines
+for(i in 1:nrow(data)){
+      row <- data[i,]
+      yr = row$Year.of.Publication
+      displ  = row$Corresp..Author..Host.Faculty.
+      sol = row$Solution.1
+      sol2 = row$Solution.2
+      sol3= row$Solution.3
+      new_df7 <- rbind(new_df7,c(yr,displ, sol))
+      if(sol2 != sol){
+        new_df7 <- rbind(new_df7,c(yr,displ, sol2))
+      }
+      if(sol3 != sol & sol3 != sol2){
+        new_df7 <- rbind(new_df7,c(yr,displ, sol3))
+      }
+} 
+
+#merge others and shorten texts of solutions
+new_df7 = new_df7[-1,]
+new_df7$sol[new_df7$sol == "Other (Specify)"] = "Other"
+new_df7$sol[new_df7$sol == "Other (specify)"] = "Other"
+new_df7$sol[new_df7$sol == "0"] = "Other"
+new_df7$sol[new_df7$sol == ""] = "Other"
+new_df7$displ[new_df7$displ == "Unknown"] = "Unknown"
+new_df7$displ[new_df7$displ == "Other health professions (Dentistry, nutrition, etc.)"] = "Other Health Professions"
+sols = plyr::count(new_df7, c("displ","sol"))
+sols2= sols
+sols = subset(sols2, sol!= "N/A")
+sols$sol[sols$sol == "Calls for Voluntary Improvements (By the Industry as a Whole, Individual Firms, Innovators, Providers, Etc.)" ] = "Voluntary Improvements"
+sols$sol[sols$sol == "Mandatory Professional Training (As Part of Degree or Licencing Requirements or Continuing Education)" ] = "Mandatory Training"
+sols$sol[sols$sol == "New Legislation or Regulations (E.g., A New Legislative Framework for Health-Related A.I.)"  ] = "New Legislation"
+sols$sol[sols$sol == "Non-Binding Guidelines Issued By Others Bodies Without Regulatory Powers (E.g., The World Health Organization)" ] = "Non-Binding Guidelines"
+sols$sol[sols$sol == "Other (Specify)"] = "Other"
+sols$sol[sols$sol == "Professional Guidelines Issued by a Body with Regulatory Power (E.g., the College of Physicians and Surgeons or Professional Engineers Ontario, the F.D.A., Health Canada)" ] = "Professional Guidelines"
+sols$sol[sols$sol == "Calls for Voluntary Improvements (By the Industry as a Whole, Individual Firms, Innovators, Providers, Etc.)" ] = "Voluntary Improvements"
+sols$sol[sols$sol == "Reform of Existing Laws or Regulations (E.g., Amendments to Existing Privacy Laws)"] = "Reform of Existing Laws"
+
+```
+
+
+## Stacked bar graph discipline = col I
+
+```{r, echo= FALSE}
+
+sols$total1 <- ave(sols$freq, sols$sol, FUN = sum)
+sols <- sols[order(sols$total1, decreasing = TRUE),]
+
+
+#stacked bar graph of solutions by discipline
+q=ggplot(sols, aes(fill=displ, y=freq, x=reorder(sol,-total1))) +
+     geom_bar(position="stack", stat="identity") +
+     scale_fill_brewer(palette  = "Spectral")
+print(q + theme(legend.position = "right") +
+        labs(x = "", y = "Frequency",fill = "Discipline") +
+        scale_y_continuous(expand = expansion(mult = c(0, .1)))+
+        #theme_minimal()+ 
+        labs(
+        title = paste("Proposed Solutions"),
+        subtitle = "Broken Down by Discipline"
+
+        )+
+        theme(plot.title = element_text(size = 15,face = "bold"))+
+        theme(axis.text.x = element_text(angle = -45, hjust=-.015)))
+
+```
+
+```{r, echo= FALSE}
+sols$total <- ave(sols$freq, sols$displ, FUN = sum)
+sols <- sols[order(sols$total, decreasing = TRUE),]
+
+
+#plot discipline broken down by solutions
+q=ggplot(sols, aes(fill=sol, y=freq, x=reorder(displ,-total))) +
+     geom_bar(position="stack", stat="identity") +
+     scale_fill_brewer(palette  = "Spectral")
+
+print(q + theme(legend.position = "right") +
+        labs(x = "", y = "Frequency",fill = "Solution") +
+        scale_y_continuous(expand = expansion(mult = c(0, .1)))+
+        labs(
+        title = paste("Discipline Broken Down by Proposed Solutions")
+
+        )+
+        theme(plot.title = element_text(size = 15,face = "bold"))+
+        theme(axis.text.x = element_text(angle = -45, hjust=-.015)))
+
+```
+
+
+## solutions by discipline of author bubble
+
+```{r, echo= FALSE}
+
+#bubble plot for displ against solution
+x = ggplot(sols, aes(x=displ, y=sol, size=freq, fill=freq)) +
+    geom_point(alpha=0.7, shape=21,color= "white") +
+    scale_size(range = c(1.5, 10), name="freq") +
+    scale_fill_viridis(discrete=FALSE, guide=FALSE, option="mako") +
+    theme_classic() +
+    theme(legend.position="bottom") +
+    ylab("") +
+    xlab("") +
+    ggtitle("Solutions Proposed by Discipline") +
+    theme(legend.position = "none") +
+    theme(plot.title = element_text(hjust = 0.5))+
+    theme(axis.text.x = element_text(angle = 45, hjust=1))
+
+
+print(x)
+```
+
+
+
+```{r, echo= FALSE}
+## create DF 
+yr = c(1)
+disp = c(1)
+Men = c(1)
+bar_displ = data.frame(yr,disp,Men)
+
+
+for(i in 1:nrow(data)) {
+    row <- data[i,]
+    # create row if an article mentions Privacy
+    if(row$Privacy.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Privacy"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+      # datalist[[i]] = c(yr,disp,Mention)
+    }
+    
+    # create row if an article mentions Cyber Security
+    if(row$Cybersecurity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Cyber Security"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Safety/Quality
+    if(row$Safety.Quality.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Safety/Quality"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Bias
+    if(row$Bias.Discrimination.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Bias/Discrimination"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Liability
+    if(row$Liability.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Liability"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Informed Consent
+    if(row$Informed.Consent.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Informed Consent"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Capacity
+    if(row$Capacity.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Capacity"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions IP
+    if(row$Intellectual.Property.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Intellectual Property"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions EOR
+    if(row$Efficiency.of.Regulation.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Efficiency of Regulation"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions AI and legal
+    if(row$AI.Personhood.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "AI and Legal Personhood"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+    # create row if an article mentions Access/Insurance
+    if(row$Access.Insurance.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Access/Insurance"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+
+
+    # create row if an article mentions other legal
+    if(row$Other.Legal.Issue.Mentioned == "Yes"){
+      yr = row$Year.of.Publication
+      disp = row$Corresp..Author..Host.Faculty.
+      Mention  = "Other Legal Issues"
+      bar_displ <- rbind(bar_displ,c(yr,disp, Mention))
+    }
+}
+
+```
+
+```{r, echo= FALSE}
+#remove first row and correct spelling
+bar_displ = bar_displ[-1,]
+bar_displ$disp[bar_displ$disp == 'Other health professions (Dentistry, nutrition, etc.)'] = "Other Health Professions"
+bar_displ$disp[bar_displ$disp == 'other'] = "Other"
+bar_displ$disp[bar_displ$disp == 'Computer science'] = "Computer Science"
+bar_displ$disp[bar_displ$disp == "Public health"] = "Public Health"
+bar_displ2 = plyr::count(bar_displ, c("Men","disp")) 
+```
+
+```{r, echo= FALSE}
+# Standardized text
+co = data.frame(data$Corresp..Author..Host.Faculty.)
+co$data.Corresp..Author..Host.Faculty.[co$data.Corresp..Author..Host.Faculty. == 'other'] = "Other"
+co$data.Corresp..Author..Host.Faculty.[co$data.Corresp..Author..Host.Faculty.== 'Computer science'] = "Computer Science"
+co$data.Corresp..Author..Host.Faculty.[co$data.Corresp..Author..Host.Faculty. == "Public health"] = "Public Health"
+counts = plyr::count(co) 
+total = sum(counts$freq)
+counts[nrow(counts) + 1,] = c("Total",total)
+
+```
+
+
+```{r, echo= FALSE}
+#for loop plot all legal issues mentioned broken down by Discipline
+mentions =c("Privacy","Cyber Security","Safety/Quality","Bias/Discrimination",
+            "Liability","Informed Consent","Capacity","Intellectual Property","Efficiency of Regulation","AI and Legal Personhood","Access/Insurance","Other Legal Issues") 
+
+
+for(i in mentions){
+  varis = subset(bar_displ2, Men == i )
+  x = ggplot(varis, aes(x = freq, y =reorder(disp,freq))) +
+  geom_col(fill = "#0099f9") +
+    scale_x_continuous(expand = expansion(mult = c(0, .1)))+
+  # theme_classic()+
+  labs(
+    title = paste(i,"Mentioned in Papers"),
+    subtitle = "Broken Down by Discipline"
+    
+  )+
+    ylab("Discipline") +
+    xlab("Frequency") +
+      theme(
+    plot.title = element_text(size = 15),
+    plot.subtitle = element_text(face = "bold", color = "#0099f9", size = 10)
+  )
+  print(x)
+} 
+```
+
+##discipline broken down by legal issues discussed
+
+
+```{r, echo = FALSE}
+displs = unique(bar_displ2$disp)
+
+#plot disipline broken dwn by legal issues raised
+for(i in displs){
+  varis = subset(bar_displ2, disp == i )
+  x = ggplot(varis, aes(x = freq, y =reorder(Men,freq))) +
+  geom_col(fill = "#0099f9") +
+    scale_x_continuous(expand = expansion(mult = c(0, .1)))+
+  # theme_classic()+
+  labs(
+    title = paste(i,"Papers"),
+    subtitle = "Broken Down by Legal Issue Raised"
+    
+  )+
+    ylab("Legal Issue Raised") +
+    xlab("Frequency") +
+      theme(
+    plot.title = element_text(size = 15),
+    plot.subtitle = element_text(face = "bold", color = "#0099f9", size = 10)
+  )
+  print(x)
+} 
+
+```
+
+
+
+```{r, echo=FALSE}
+#bubble chart of freq disp
+x = ggplot(bar_displ2, aes(x=disp, y=Men, size=freq, fill=freq)) +
+    geom_point(alpha=0.7, shape=21,color= "white") +
+    scale_size(range = c(.5, 14), name="freq") +
+    scale_fill_viridis(discrete=FALSE, guide=FALSE, option="") +
+    theme_classic() +
+    theme(legend.position="bottom") +
+    ylab("Legal Issue Discussed") +
+    xlab("Discipline") +
+    ggtitle("Frequency of Discussion of Legal Issues") +
+    labs(subtitle = "Across Disciplines")+
+    theme(plot.caption = element_text(size = 6, hjust = 0))+
+    theme(legend.position = "none") +
+    theme(plot.title = element_text(hjust = 0))+
+    theme(plot.title = element_text(size = 15,face = "bold"))+
+    theme(axis.text.x = element_text(angle = 45, hjust=1))
+
+print(x)
+```
+
+
+
+```{r}
+#count occurances of country
+amount = as.data.frame(table(data$Corresp..Author..Country.))
+```
+
+
+```{r}
+#get solution values
+solutions = sols[c("sol","total1")]
+solutions = solutions[!duplicated(solutions),]
+```
+
